@@ -1,0 +1,37 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Enter Name - LC Scheduler</title>
+    <link rel="stylesheet" href="{% static 'littlecaesars/css/style.css' %}">
+</head>
+<body>
+    <div class="container">
+        <h1>Little Caesars Availability</h1>
+
+        {% if messages %}
+            <ul class="messages">
+                {% for message in messages %}
+                    <li class="{{ message.tags }}">{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+
+        <form method="post" novalidate>
+            {% csrf_token %}
+            {{ form.non_field_errors }}
+            {{ form.full_name.errors }}
+            <label for="{{ form.full_name.id_for_label }}">{{ form.full_name.label }}:</label>
+            {{ form.full_name }}
+            <br>
+            <button type="submit">Submit Name &rarr;</button>
+        </form>
+
+        <p style="text-align: center; margin-top: 20px;">
+            <a href="{% url 'littlecaesars:view_availability' %}">View Submitted Availability</a>
+        </p>
+
+    </div>
+</body>
+</html>

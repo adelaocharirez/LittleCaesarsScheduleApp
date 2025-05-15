@@ -1,0 +1,111 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>View Availability - LC Scheduler</title>
+    <link rel="stylesheet" href="{% static 'littlecaesars/css/style.css' %}">
+    <style>
+        /* Add specific styles for the view availability page if needed */
+        .availability-day {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+        }
+
+        .availability-day h3 {
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+            color: var(--lc-red);
+        }
+
+        .shift-availability {
+            margin-bottom: 15px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            background-color: white;
+            border-radius: 4px;
+        }
+
+        .shift-availability h4 {
+            margin-top: 0;
+            margin-bottom: 8px;
+            color: var(--lc-orange);
+        }
+
+        .employee-list {
+            list-style-type: none;
+            padding-left: 0;
+            margin-top: 5px;
+            font-size: 0.9em;
+            color: #444;
+        }
+
+        .employee-list li {
+            margin-bottom: 3px;
+            padding-left: 15px;
+            position: relative;
+        }
+
+        .employee-list li:before {
+            content: '•'; /* Simple bullet point */
+            position: absolute;
+            left: 0;
+            color: #888; /* Grey bullet */
+        }
+
+        .no-availability {
+            font-style: italic;
+            color: #888;
+        }
+         /* Optional: Add specific style for back links in style.css later */
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px; /* Space below the link */
+            color: #555;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        {# Add the back link here #}
+        <a href="{% url 'littlecaesars:enter_name' %}" class="back-link">&larr; Back to Name Entry</a>
+
+        <h1>View Submitted Availability</h1>
+
+        {% for day_name, shifts_in_day in availability_by_day.items %}
+            <div class="availability-day">
+                <h3>{{ day_name }}</h3>
+                {% if shifts_in_day %}
+                    {% for shift_data in shifts_in_day %}
+                        <div class="shift-availability">
+                            <h4>{{ shift_data.shift.get_time_slot_display }} ({{ shift_data.count }}/{{ shift_data.max_capacity }} Available)</h4>
+                            {% if shift_data.employees %}
+                                <ul class="employee-list">
+                                    {% for employee_name in shift_data.employees %}
+                                        <li>{{ employee_name }}</li>
+                                    {% endfor %}
+                                </ul>
+                            {% else %}
+                                <p class="no-availability">No employees available for this shift yet.</p>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                {% else %}
+                     <p>No shifts defined for this day.</p>
+                {% endif %}
+            </div>
+        {% endfor %}
+
+    </div>
+</body>
+</html>

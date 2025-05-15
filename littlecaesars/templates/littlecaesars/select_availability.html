@@ -1,0 +1,97 @@
+{% load static %}
+{% load custom_filters %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Select Availability - LC Scheduler</title>
+    <link rel="stylesheet" href="{% static 'littlecaesars/css/style.css' %}">
+    <style>
+        /* Optional: Add specific style for back links in style.css later */
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px; /* Space below the link */
+            color: #555;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        {# Add the back link here #}
+        <a href="{% url 'littlecaesars:enter_name' %}" class="back-link">&larr; Back to Name Entry</a>
+
+        <h1>Select Availability for {{ employee_name }}</h1>
+        <p>Select the shifts you can work. Min 3 days, Max 5 days. Max {{ max_capacity }} people per shift.</p>
+
+        <form method="post" id="availability-form" novalidate>
+            {% csrf_token %}
+
+            {% if form.non_field_errors or form.selected_shifts.errors %}
+                <div class="errorlist">
+                    {{ form.non_field_errors }}
+                    {{ form.selected_shifts.errors }}
+                </div>
+            {% endif %}
+
+            {% comment %} Render checkboxes manually for structure control {% endcomment %}
+            <div class="week-schedule">
+                {% for day_name, shifts_in_day in shifts_by_day.items %}
+                <div class="day-column">
+                    <h3>{{ day_name }}</h3>
+                    {% for shift in shifts_in_day %}
+                        {% with shift_data=availability_data|get_item:shift.id shift_id_str=shift.id|stringformat:"s" %}
+                        {% with is_checked=shift.id|stringformat:"s"|in:form.selected_shifts.value is_full=shift_data.is_full %}
+                        <div class="shift-item {% if is_full %}shift-full{% endif %}" id="shift-{{ shift.id }}">
+                            <label for="id_selected_shifts_{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}">
+                                <input type="checkbox"
+                                       name="{{ form.selected_shifts.name }}"
+                                       value="{{ shift.id }}"
+                                       id="id_selected_shifts_{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}"
+                                       {% if is_checked %}checked{% endif %}
+                                       {% if is_full and not is_checked %}disabled{% endif %} >
+                                {{ shift.get_time_slot_display }}
+                            </label>
+                            <div class="shift-details">
+                                Currently Available: {{ shift_data.count }}/{{ max_capacity }}
+                                {% if shift_data.names %}
+                                <ul class="available-list">
+                                    {% for name in shift_data.names %}
+                                        <li>{{ name }}</li>
+                                    {% endfor %}
+                                </ul>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endwith %}
+                        {% endwith %}
+                    {% empty %}
+                        <p>No shifts defined for this day.</p>
+                    {% endfor %}
+                </div>
+                {% endfor %}
+            </div>
+
+            <button type="submit">Save Availability</button>
+        </form>
+    </div>
+
+    {% comment %} Simple script to add visual feedback if needed, e.g., on checkbox change {% endcomment %}
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const checkboxes = document.querySelectorAll('#availability-form input[type="checkbox"]');
+        checkboxes.forEach(cb => {
+            cb.addEventListener('change', function() {
+                // Could add styling or logic here if desired
+                // console.log(`Shift ${this.value} changed to ${this.checked}`);
+            });
+        });
+    });
+    </script>
+</body>
+</html>
